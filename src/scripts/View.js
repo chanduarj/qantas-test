@@ -49,10 +49,10 @@ const View = props => {
       <div>
         <span className="greeting">How are we doing?</span>
       </div>
-      <div>
+      <div className="form-div">
         <Field name="email" component="input" type="text" placeholder="Email"/>
       </div>
-      <div>
+      <div className="form-div">
         <Field name="notes" component="textarea" placeholder="Message"/>
       </div>
       <div>
@@ -70,5 +70,5 @@ const View = props => {
 export default reduxForm({
   form: 'syncValidation', // a unique identifier for this form
   validate, // <--- validation function given to redux-form
-  warn // <--- warning function given to redux-form
+  // warn // <--- warning function given to redux-form
 })(View)
