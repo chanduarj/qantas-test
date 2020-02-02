@@ -1,74 +1,70 @@
-import React from 'react'
-import { Field, reduxForm } from 'redux-form'
+import React, { useState } from 'react'
 import './styles.css'
-const validate = values => {
-  const errors = {}
-  if (!values.notes) {
-    errors.notes = 'Required'
-  } else if (values.notes.length > 15) {
-    errors.notes = 'Must be 15 characters or less'
+import { loadUser  } from './actions/userProfile'
+  const View = () => {
+    const [formData, setFormData ] = useState({
+      email: '',
+      message: '',
+      error: false 
+    })
+  const { email, message } = formData;
+  const onChange = e => setFormData({...formData, [e.target.name]: e.target.value })
+  function useLocalState(localItem) {
+    const [value, setState] = useState(localStorage.getItem(localItem));
+    function setLocalStorage(newItem) {
+      localStorage.setItem(localItem, newItem);
+      setState(newItem);
+    }
+    return [value, setLocalStorage];
   }
-  if (!values.email) {
-    errors.email = 'Required'
-  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
-    errors.email = 'Invalid email address'
-  }
-  if (!values.age) {
-    errors.age = 'Required'
-  } else if (isNaN(Number(values.age))) {
-    errors.age = 'Must be a number'
-  } else if (Number(values.age) < 18) {
-    errors.age = 'Sorry, you must be at least 18 years old'
-  }
-  return errors
-}
 
-const renderField = ({
-  input,
-  label,
-  type,
-  meta: { touched, error, warning }
-}) => (
-  <div>
-    <label>{label}</label>
-    <div>
-      <input {...input} placeholder={label} type={type} />
-      {touched &&
-        ((error && <span>{error}</span>) ||
-          (warning && <span>{warning}</span>))}
-    </div>
-  </div>
-)
-const handleSubmit = () => {
-console.log('handling submit')
-}
-const View = props => {
-  const { pristine, reset, submitting } = props
-  return (
-    <form className='form' onSubmit={handleSubmit}>
+  function validateFormdata(formData) {
+    const emailValid = formData.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
+    const messsageValid = formData.message.length >= 6
+    return emailValid && messsageValid
+  }
+  const [closeModal, setCloseModal] = useLocalState('showFeedback');
+  const showModal = (closeModal !== 'true')
+
+  const onSubmit = e => {
+    e.preventDefault();
+    if (validateFormdata(formData)) {
+      loadUser();
+      setCloseModal('true')
+    } else {
+      setFormData({...formData, error: true })
+    }
+  }
+
+    return (
+      showModal &&
+      <div>
+        <form className='form'>
+      <div>
+      <button className="x" onClick={()=>setCloseModal('true')}>X</button>
+        </div>
       <div>
         <span className="greeting">How are we doing?</span>
       </div>
       <div className="form-div">
-        <Field name="email" component="input" type="text" placeholder="Email"/>
+        <input name="email" type="text" placeholder="Email" value={email} 
+          onChange={e => onChange(e)}/>
       </div>
       <div className="form-div">
-        <Field name="notes" component="textarea" placeholder="Message"/>
+        <textarea name="message" placeholder="Message" value={message} 
+          onChange={e => onChange(e)}/>
       </div>
       <div>
-        <button type="submit" disabled={submitting}>
+        <button type="submit" onClick={onSubmit}>
           Submit
         </button>
-        <button type="button" disabled={pristine || submitting} onClick={reset}>
-          Clear Values
-        </button>
       </div>
+      <div>
+      {formData.error && <span>Invalid Email or Message</span>}
+        </div>
     </form>
-  )
+      </div>
+    );
 }
 
-export default reduxForm({
-  form: 'syncValidation', // a unique identifier for this form
-  validate, // <--- validation function given to redux-form
-  // warn // <--- warning function given to redux-form
-})(View)
+export default (View);
